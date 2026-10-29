@@ -32,7 +32,7 @@ const embed = {
   sh: embedScript("get-copilot-cost-inventory.sh", /const VERSION = "([^"]+)"/),
 };
 
-const js = ["core.js", "demo.js", "render.js", "main.js"].map((f) => text(join("src", f))).join("\n");
+const js = ["core.js", "demo.js", "api-samples.js", "render.js", "api.js", "main.js"].map((f) => text(join("src", f))).join("\n");
 const jsWithEmbed = js.replace(/\/\*@EMBED@\*\/[\s\S]*?\/\*@END@\*\//, () => `/*@EMBED@*/ ${JSON.stringify(embed)} /*@END@*/`);
 if (jsWithEmbed === js) throw new Error("EMBED marker not found in src/core.js");
 if (/<\/script|<!--/i.test(jsWithEmbed)) throw new Error("Inline JS must not contain </script or <!--");

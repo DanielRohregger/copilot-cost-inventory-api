@@ -91,6 +91,7 @@
     <a href="#users" data-tip="Users"><svg class="i" aria-hidden="true"><use href="#i-people"/></svg><span class="lbl">Users</span></a>
     <a href="#diagnostics" data-tip="Diagnostics"><svg class="i" aria-hidden="true"><use href="#i-pulse"/></svg><span class="lbl">Diagnostics</span></a>
     <a href="#scripts" data-tip="Collector scripts"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg><span class="lbl">Collector scripts</span></a>
+    <a href="#api" data-tip="API reference"><svg class="i" aria-hidden="true"><use href="#i-json"/></svg><span class="lbl">API reference</span></a>
   </nav>
 
   <main id="content" tabindex="-1">
@@ -123,7 +124,7 @@
           </div>
           <div class="msg success"><svg class="i" aria-hidden="true"><use href="#i-lock"/></svg>
             <div><b>Private by design.</b> The file is read in this browser tab. Nothing is uploaded, and the script only sends <code>GET</code> requests.</div></div>
-          <p class="source"><img src="assets/graph.png" alt="">Data source: Microsoft Graph (beta) Copilot Cost Management API</p>
+          <p class="source"><img src="assets/graph.png" alt="">Data source: Microsoft Graph (beta) Copilot Cost Management API &middot; <a href="#api">Browse all API calls</a></p>
         </div>
 
         <label class="dropzone" id="dropzone" tabindex="0">
@@ -197,6 +198,20 @@
           </div>
         </div>
       </details>
+    </section>
+
+    <!-- ============================== API reference ============================== -->
+    <section id="api" class="panel">
+      <div class="panel-head">
+        <span class="ptile"><svg class="i" aria-hidden="true"><use href="#i-json"/></svg></span>
+        <div><h2>API reference</h2>
+          <p class="sub">All operations of the Microsoft Graph Copilot Cost Management API, with sample requests and responses. Based on the
+            <a href="https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/api/admin-settings/cost-management/overview" target="_blank" rel="noopener">official documentation on Microsoft Learn</a>.</p></div>
+        <span class="spacer"></span>
+        <a class="btn" href="https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/api/admin-settings/cost-management/overview" target="_blank" rel="noopener">Official documentation<svg class="i" aria-hidden="true"><use href="#i-open"/></svg></a>
+      </div>
+      <div class="msg warning"><svg class="i" aria-hidden="true"><use href="#i-warn"/></svg><div>The API is in the Microsoft Graph <code>/beta</code> version and is subject to change. Use of these APIs in production applications is not supported.</div></div>
+      <div id="apiRef"></div>
     </section>
 
     <footer>

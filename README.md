@@ -7,7 +7,7 @@
 One-time, offline inventory of a tenant's Microsoft 365 Copilot costs, based on the [Copilot Cost Management API](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/api/admin-settings/cost-management/overview) (Microsoft Graph **beta**, `/copilot/costManagement`).
 
 1. **Collector script**: an admin runs it once. It sends only `GET` requests and writes a single JSON file.
-2. **Viewer** ([`index.html`](index.html)): a self-contained page that imports the JSON in the browser. It shows credit balances, spending policies, per-user consumption and API diagnostics. No server or live connection is needed, and nothing is uploaded. Both scripts are embedded as downloads.
+2. **Viewer** ([`index.html`](index.html)): a self-contained page that imports the JSON in the browser. It shows credit balances, spending policies, per-user consumption and API diagnostics, plus an [API reference](https://danielrohregger.github.io/copilot-cost-inventory-api/#api) for all 22 Copilot Cost Management operations. No server or live connection is needed, and nothing is uploaded. Both scripts are embedded as downloads.
 
 Open it on [GitHub Pages](https://danielrohregger.github.io/copilot-cost-inventory-api/), or open `index.html` from disk. Add `?demo` to the URL, or click *Try demo data*, to load a synthetic Contoso tenant.
 
@@ -120,6 +120,16 @@ The file contains user names and UPNs, so handle it like other tenant reports.
 - The header switch shows amounts as **Credits, US $ or €**. 1 Copilot Credit = US$0.01 (pay-as-you-go list price) and €0.92 per US$1 (generic average rate). These are indicative values only; adjust `PRICING` in `src/core.js`.
 - Exports: users as CSV (credits, USD and EUR columns), the JSON file, and print/PDF.
 
+## API reference
+
+The [API reference](https://danielrohregger.github.io/copilot-cost-inventory-api/#api) section lists all 22 operations of the Copilot Cost Management API from the [official overview](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/api/admin-settings/cost-management/overview). It is available on the start page and in the dashboard.
+
+- Each operation shows its method, path, least privileged permission, a link to its Microsoft Learn page, whether the collector calls it, and a sample request and response.
+- Filter by HTTP method, show only the calls the collector makes, or search by name, path or permission.
+- Also covers the permissions, the `If-Match`/ETag concurrency rules, and the documented error conditions, together with the errors observed in a test run (for example `428 preconditionRequired` when `If-Match` is missing).
+
+The samples were recorded against a test tenant. All identifiers, names, addresses and amounts are replaced with Contoso placeholders, and directory objects are trimmed to a few properties. The catalog lives in `src/api.js` and the samples in `src/api-samples.js`.
+
 ## Repository layout
 
 | Path | Content |
@@ -141,7 +151,7 @@ node build.mjs
 ```
 
 `build.mjs` (Node, no dependencies) does the following:
-- Inlines `src/styles.css` and `src/{core,demo,render,main}.js` into `src/template.html`.
+- Inlines `src/styles.css` and `src/{core,demo,api-samples,render,api,main}.js` into `src/template.html`.
 - Inlines `assets/*.png` as data URIs, both in HTML attributes and in CSS `url()`.
 - Embeds both scripts as base64 with their size and SHA-256.
 

@@ -137,7 +137,7 @@ function download(name, data, type = "application/octet-stream") {
 const b64ToBytes = (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
 const b64ToText = (b64) => new TextDecoder().decode(b64ToBytes(b64));
 function highlightJson(text) {
-  return esc(text).replace(/(&quot;(?:[^&]|&(?!quot;))*?&quot;)(\s*:)?|\b(true|false|null)\b|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g, (m, str, colon, bool, n) => {
+  return esc(text).replace(/(&quot;(?:\\&quot;|\\.|[^&\\]|&(?!quot;))*?&quot;)(\s*:)?|\b(true|false|null)\b|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g, (m, str, colon, bool, n) => {
     if (str) return colon ? `<span class="k">${str}</span>${colon}` : `<span class="s">${str}</span>`;
     if (bool) return `<span class="b">${bool}</span>`;
     return `<span class="n">${n}</span>`;

@@ -330,6 +330,7 @@ function userDetail(u) {
   </div>`;
 }
 function toggleRow(tr) {
+  if (tr.classList.contains("arow")) { toggleApiRow(tr); return; }
   const next = tr.nextElementSibling;
   if (next && next.classList.contains("xdetail")) { next.remove(); tr.classList.remove("open"); tr.setAttribute("aria-expanded", "false"); return; }
   const isUser = tr.classList.contains("urow");

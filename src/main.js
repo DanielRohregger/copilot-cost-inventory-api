@@ -129,6 +129,8 @@ function bindEvents() {
     else if (a === "more") { state.userLimit += 200; renderUsers(); }
     else if (a === "ufilter") { $("#ustatus").value = el.dataset.v; state.userLimit = 200; renderUsers(); }
     else if (a === "copy") copyText(el.dataset.text);
+    else if (a === "apimethod") { api.method = el.dataset.v; renderApiRows(); }
+    else if (a === "apicollector") { api.collector = !api.collector; renderApiRows(); }
     else if (a === "dl") {
       const s = EMBED[el.dataset.key];
       if (!s) return;
@@ -161,7 +163,7 @@ function bindEvents() {
       });
       moveNavIndicator();
     }), { rootMargin: "-30% 0px -60% 0px" });
-    const watch = () => ["overview", "policies", "users", "diagnostics", "scripts"].forEach((id) => { const el = document.getElementById(id); if (el) navObs.observe(el); });
+    const watch = () => ["overview", "policies", "users", "diagnostics", "scripts", "api"].forEach((id) => { const el = document.getElementById(id); if (el) navObs.observe(el); });
     new MutationObserver(watch).observe($("#dash"), { childList: true });
     watch();
   }
@@ -169,6 +171,7 @@ function bindEvents() {
 
 /* ---------- init ---------- */
 renderScripts();
+renderApi();
 bindEvents();
 setUnit(state.unit);
 try { if (localStorage.getItem("cci-nav") === "collapsed") setNav(true, false); } catch (_) { /* storage blocked */ }
