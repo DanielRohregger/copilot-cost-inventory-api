@@ -1,0 +1,6 @@
+# Copilot Cost Inventory output (contains tenant user data)
+CopilotCostInventory-*.json
+
+.DS_Store
+.impeccable/
+node_modules/
