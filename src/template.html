@@ -103,12 +103,13 @@
       <button class="btn subtle" data-action="home" title="Close this file and return to the start page"><svg class="i" aria-hidden="true"><use href="#i-dismiss"/></svg><span class="lbl">Close file</span></button>
       <span class="spacer"></span>
       <span class="unit-label" id="unitLabel">Amounts in</span>
-      <div class="unit-switch" role="radiogroup" aria-labelledby="unitLabel">
-        <span class="thumb" aria-hidden="true"></span>
-        <button role="radio" data-unit="credits" title="Copilot Credits">Credits</button>
-        <button role="radio" data-unit="usd" title="US dollar (1 credit = $0.01)">US $</button>
-        <button role="radio" data-unit="eur" title="Euro (average exchange rate)">Euro</button>
-      </div>
+      <select class="unit-switch" id="unitSelect" aria-labelledby="unitLabel">
+        <option value="credits">Credits</option>
+        <option value="usd">US $</option>
+        <option value="eur">Euro</option>
+        <option value="nzd">NZ $</option>
+        <option value="aud">AU $</option>
+      </select>
     </div>
 
     <!-- ============================== Landing ============================== -->
