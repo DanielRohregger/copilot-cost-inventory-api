@@ -58,6 +58,42 @@ function readFile(file) {
   r.onerror = () => toast("Could not read the file.", true);
   r.readAsText(file);
 }
+async function autoLoadInventory() {
+  if (state.data || location.protocol === "file:") return;
+  const directory = new URL(".", location.href);
+  let links;
+  try {
+    const response = await fetch(directory, { cache: "no-store" });
+    if (!response.ok) return;
+    const html = await response.text();
+    links = [...new DOMParser().parseFromString(html, "text/html").querySelectorAll("a[href]")]
+      .map((a) => new URL(a.getAttribute("href"), directory))
+      .filter((url) => url.origin === directory.origin && url.pathname.startsWith(directory.pathname))
+      .filter((url) => !url.pathname.slice(directory.pathname.length).includes("/"))
+      .filter((url) => /^CopilotCostInventory-[^/]+\.json$/i.test(decodeURIComponent(url.pathname.split("/").pop() || "")))
+      .sort((a, b) => b.pathname.localeCompare(a.pathname));
+  } catch (_) {
+    return;
+  }
+  for (const url of links) {
+    if (state.data) return;
+    let response;
+    try {
+      response = await fetch(url, { cache: "no-store" });
+    } catch (_) {
+      continue;
+    }
+    if (!response.ok) continue;
+    let text;
+    try {
+      text = await response.text();
+    } catch (_) {
+      continue;
+    }
+    const loaded = loadInventory(text, decodeURIComponent(url.pathname.split("/").pop()));
+    if (loaded) return;
+  }
+}
 function goHome() {
   document.body.dataset.view = "landing";
   document.title = "Copilot Cost Inventory";
@@ -111,7 +147,7 @@ function bindEvents() {
     readFile(e.dataTransfer.files[0]);
   });
 
-  $$(".unit-switch button").forEach((b) => b.addEventListener("click", () => setUnit(b.dataset.unit)));
+  $("#unitSelect").addEventListener("change", (e) => setUnit(e.target.value));
 
   document.addEventListener("click", (e) => {
     const row = e.target.closest("tr.xrow");
@@ -177,3 +213,4 @@ setUnit(state.unit);
 try { if (localStorage.getItem("cci-nav") === "collapsed") setNav(true, false); } catch (_) { /* storage blocked */ }
 observeReveals();
 if (/[?#&]demo\b/.test(location.search + location.hash)) loadInventory(JSON.stringify(demoData()), "demo-data.json");
+else autoLoadInventory();

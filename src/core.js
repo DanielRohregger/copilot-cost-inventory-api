@@ -3,12 +3,17 @@
 const EMBED = /*@EMBED@*/ {} /*@END@*/;
 
 /* ---------- constants ---------- */
-const PRICING = { usdPerCredit: 0.01, eurPerUsd: 0.92 }; // PAYG list price per Copilot Credit; generic average EUR rate
+const PRICING = {
+  usdPerCredit: 0.01,
+  rates: { eur: 0.89509, nzd: 1.7743, aud: 1.4236 },
+  ratesDate: "2026-10-30",
+  ratesSource: "https://api.frankfurter.dev/v1/latest?from=USD&to=EUR,NZD,AUD",
+}; // PAYG list price per Copilot Credit; rates are USD exchange rates from Frankfurter
 const SERVICE_LABELS = { cowork: "Copilot Cowork", workIQ: "Work IQ", sharePointCopilot: "SharePoint Copilot", oneDriveCopilot: "OneDrive Copilot" };
 const SERVICE_LOGOS = { cowork: "cowork", sharePointCopilot: "sharepoint", oneDriveCopilot: "onedrive" }; // product logos, .lg-* in styles.css
 const SERVICE_COLORS = ["var(--v1)", "var(--v2)", "var(--v3)", "var(--v4)", "var(--v5)", "var(--v6)", "var(--v7)", "var(--v8)"]; // Fluent data-viz order, light and dark values in styles.css
 const BILLING_LABELS = { prepaidCredits: "Prepaid credits", payAsYouGo: "Pay-as-you-go" };
-const UNITS = ["credits", "usd", "eur"];
+const UNITS = ["credits", "usd", "eur", "nzd", "aud"];
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const state = { data: null, model: null, fileName: "", unit: localStorage.getItem("cci-unit") || "credits", userLimit: 200 };
 
@@ -37,10 +42,11 @@ const creditGlyph = `<svg class="cr" role="img" aria-label="credits"><use href="
 
 function fmtMoney(cr, unit = state.unit) {
   if (cr == null || isNaN(cr)) return "&ndash;";
-  if (unit === "usd" || unit === "eur") {
+  if (unit !== "credits") {
     const usd = cr * PRICING.usdPerCredit;
-    const v = unit === "usd" ? usd : usd * PRICING.eurPerUsd;
-    return new Intl.NumberFormat(undefined, { style: "currency", currency: unit === "usd" ? "USD" : "EUR" }).format(v);
+    const currency = { usd: "USD", eur: "EUR", nzd: "NZD", aud: "AUD" }[unit] || "USD";
+    const v = unit === "usd" ? usd : usd * PRICING.rates[unit];
+    return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(v);
   }
   const a = Math.abs(cr);
   return nf(cr, a >= 1000 ? 0 : a >= 10 ? 1 : 2) + creditGlyph;
@@ -174,9 +180,8 @@ function setUnit(unit) {
   const changed = state.unit !== unit;
   state.unit = UNITS.includes(unit) ? unit : "credits";
   localStorage.setItem("cci-unit", state.unit);
-  const sw = $(".unit-switch");
-  sw.style.setProperty("--i", UNITS.indexOf(state.unit));
-  $$("button", sw).forEach((b) => b.setAttribute("aria-checked", String(b.dataset.unit === state.unit)));
+  const sw = $("#unitSelect");
+  sw.value = state.unit;
   $$(".m").forEach((el) => (el.innerHTML = fmtMoney(Number(el.dataset.cr), el.dataset.alt ? altUnit() : state.unit)));
   if (changed && !REDUCED) {
     const d = $("#dash");

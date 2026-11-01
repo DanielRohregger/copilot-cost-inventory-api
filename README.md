@@ -115,10 +115,10 @@ The file contains user names and UPNs, so handle it like other tenant reports.
 
 ## Viewer
 
-- Import by drag and drop or file picker. Parsing happens locally (`FileReader`).
-- Shows the tenant overview in a Microsoft Fluent 2 admin layout: five KPI tiles, a credit balance donut with billing-method split, consumption by service (donut and table), a per-user limit usage histogram, consumption by policy, top consumers split by service, an expandable spending policy table (services, alerts, recipients, groups), a searchable and filterable user table with per-service detail, and diagnostics (call log and raw JSON). Light and dark mode follow the system setting.
-- The header switch shows amounts as **Credits, US $ or €**. 1 Copilot Credit = US$0.01 (pay-as-you-go list price) and €0.92 per US$1 (generic average rate). These are indicative values only; adjust `PRICING` in `src/core.js`.
-- Exports: users as CSV (credits, USD and EUR columns), the JSON file, and print/PDF.
+- Import by drag and drop or file picker. Parsing happens locally (`FileReader`). When the viewer is served over HTTP(S), it also checks the same directory for a `CopilotCostInventory-*.json` file and loads the newest matching name automatically. This requires the web server to expose a directory index; browsers cannot enumerate the directory when `index.html` is opened directly as a `file://` URL, so use the file picker in that case.
+- Shows the tenant overview in a Microsoft Fluent 2 admin layout: five KPI tiles, a credit balance donut with billing-method split, consumption by service (donut and table), a per-user limit usage histogram, consumption by policy, top consumers split by service, an expandable spending policy table (services, alerts, recipients, groups), a searchable and filterable user table with a consumption-greater-than-zero filter selected by default and per-service detail, and diagnostics (call log and raw JSON). Light and dark mode follow the system setting.
+- The **Amounts in** dropdown shows amounts as **Credits, US $, Euro, NZ $ or AU $**. 1 Copilot Credit = US$0.01 (pay-as-you-go list price). EUR, NZD and AUD estimates use the latest rates recorded from the free [Frankfurter API](https://www.frankfurter.dev/) in `src/core.js`; these are indicative values only.
+- Exports: users as CSV (credits, USD, EUR, NZD and AUD columns), the JSON file, and print/PDF.
 
 ## API reference
 

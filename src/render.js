@@ -68,7 +68,7 @@ function renderDashboard() {
   const enabled = m.policies.filter((p) => p.status === "enabled").length;
   const withAlerts = m.policies.filter((p) => p.alertSettings && p.alertSettings.isEnabled).length;
   const cnt = (s) => m.users.filter((u) => u.status === s).length;
-  const atLimit = m.buckets.limit, errs = cnt("error"), limited = cnt("blocked") + cnt("partial");
+  const atLimit = m.buckets.limit, errs = cnt("error"), limited = cnt("blocked") + cnt("partial"), consuming = m.users.filter((u) => u.total > 0).length;
   const attention = m.users.filter((u) => u.status !== "allowed" || u.bucket === "limit").length;
   const top = m.services[0] && m.svcTotals[m.services[0]] > 0 ? m.services[0] : null;
   const errors = Array.isArray(d.errors) ? d.errors : [];
@@ -127,11 +127,12 @@ function renderDashboard() {
       <label class="search">${ic("i-search")}<input id="uq" type="search" placeholder="Search name or UPN" aria-label="Search users"></label>
       <div class="pills" role="group" aria-label="Quick filter">
         <button class="pill" data-action="ufilter" data-v="">All <b>${m.users.length}</b></button>
+        <button class="pill" data-action="ufilter" data-v="consuming">Consuming <b>${consuming}</b></button>
         <button class="pill" data-action="ufilter" data-v="limited">Limited <b>${limited}</b></button>
         <button class="pill" data-action="ufilter" data-v="error">Errors <b>${errs}</b></button>
       </div>
       <select id="ustatus" aria-label="Filter by status">
-        <option value="">All statuses</option><option value="allowed">Allowed</option><option value="limited">Blocked / limited</option><option value="error">Errors</option><option value="none">No balance</option>
+        <option value="">All statuses</option><option value="consuming" selected>Consumption &gt; 0</option><option value="allowed">Allowed</option><option value="limited">Blocked / limited</option><option value="error">Errors</option><option value="none">No balance</option>
       </select>
       <select id="upolicy" aria-label="Filter by policy"><option value="">All policies</option>${m.policies.map((p) => `<option value="${esc(p.id)}">${esc(p.displayName)}</option>`).join("")}</select>
       <select id="usort" aria-label="Sort"><option value="use">Highest consumption</option><option value="pct">Highest limit usage</option><option value="name">Name A-Z</option><option value="rem">Lowest remaining</option></select>
@@ -180,7 +181,7 @@ function renderBalance() {
       <ul class="legend">${used.map((b, i) => `<li><i class="sw" style="--c:${colors[i % colors.length]}"></i>${esc(BILLING_LABELS[b.billingMethod] || splitCamel(b.billingMethod))}<b>${pctText(num(b.consumedQuantity) / totalUsed)}</b></li>`).join("")}</ul>
     </div>` : "";
   return `${head}<div class="balance">${ring}<dl class="kvl">${rows.join("")}</dl></div>${mix}
-    <p class="fine">As of ${fmtDate(asOf && asOf.lastModifiedDateTime)}. Currency view: 1 credit = $${PRICING.usdPerCredit.toFixed(2)} pay-as-you-go list price, &euro; at ${PRICING.eurPerUsd} per $. Indicative only.</p>`;
+    <p class="fine">As of ${fmtDate(asOf && asOf.lastModifiedDateTime)}. Currency view: 1 credit = $${PRICING.usdPerCredit.toFixed(2)} pay-as-you-go list price. Exchange rates for EUR, NZD and AUD are from ${esc(PRICING.ratesDate)} via <a href="${esc(PRICING.ratesSource)}" target="_blank" rel="noopener">Frankfurter</a>. Indicative only.</p>`;
 }
 
 function renderServices() {
@@ -276,7 +277,7 @@ function filteredUsers() {
   const q = ($("#uq").value || "").trim().toLowerCase(), st = $("#ustatus").value, pol = $("#upolicy").value, sort = $("#usort").value;
   let list = m.users.filter((u) =>
     (!q || `${u.displayName} ${u.userPrincipalName}`.toLowerCase().includes(q)) &&
-    (!st || (st === "limited" ? u.status === "blocked" || u.status === "partial" : u.status === st)) &&
+    (!st || (st === "consuming" ? u.total > 0 : st === "limited" ? u.status === "blocked" || u.status === "partial" : u.status === st)) &&
     (!pol || u.policyIds.includes(pol)));
   const remVal = (u) => (u.remaining && !isUnlimited(u.remaining) ? num(u.remaining.value) : Infinity);
   if (sort === "name") list.sort((a, b) => String(a.displayName).localeCompare(String(b.displayName)));
@@ -410,15 +411,15 @@ function exportCsv() {
   const m = state.model;
   const cell = (v) => { let s = v == null ? "" : String(v); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
   const q = (x) => (!x ? "" : isUnlimited(x) ? "unlimited" : x.value);
-  const head = ["displayName", "userPrincipalName", "userType", "groups", "status", "serviceId", "policy", "consumedCredits", "consumedUSD", "consumedEUR", "periodLimit", "perUserLimit", "effectiveCapacity", "remaining", "isConsumptionAllowed", "accessDecisionReason", "asOf", "error"];
+  const head = ["displayName", "userPrincipalName", "userType", "groups", "status", "serviceId", "policy", "consumedCredits", "consumedUSD", "consumedEUR", "consumedNZD", "consumedAUD", "periodLimit", "perUserLimit", "effectiveCapacity", "remaining", "isConsumptionAllowed", "accessDecisionReason", "asOf", "error"];
   const rows = [];
   for (const u of filteredUsers()) {
     const base = [u.displayName, u.userPrincipalName, u.userType, (u.groupIds || []).map((g) => m.groupNames[g] || g).join(" | "), u.status];
     const err = u.error ? `${u.error.status} ${u.error.code || ""} ${u.error.innerCode || ""}`.trim() : "";
-    if (!u.sb.length) { rows.push([...base, "", "", "", "", "", "", "", "", "", "", "", "", err]); continue; }
+    if (!u.sb.length) { rows.push([...base, "", "", "", "", "", "", "", "", "", "", "", "", "", "", err]); continue; }
     for (const x of u.sb) {
       const c = num(x.consumedQuantity), usd = c * PRICING.usdPerCredit;
-      rows.push([...base, x.serviceId, (m.pById[x.spendingPolicyId] || {}).displayName || x.spendingPolicyId, c, usd.toFixed(4), (usd * PRICING.eurPerUsd).toFixed(4),
+      rows.push([...base, x.serviceId, (m.pById[x.spendingPolicyId] || {}).displayName || x.spendingPolicyId, c, usd.toFixed(4), (usd * PRICING.rates.eur).toFixed(4), (usd * PRICING.rates.nzd).toFixed(4), (usd * PRICING.rates.aud).toFixed(4),
         q(x.configuredPeriodLimit), q(x.configuredPerUserLimit), q(x.effectiveCapacityQuantity), q(x.remainingQuantity), x.isConsumptionAllowed, x.accessDecisionReason, x.dataStatus && x.dataStatus.lastModifiedDateTime, err]);
     }
   }
